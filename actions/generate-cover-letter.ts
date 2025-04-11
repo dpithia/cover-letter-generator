@@ -1,31 +1,18 @@
 "use server"
 
-import OpenAI from 'openai';
+import { model, withRetry } from '@/utils/ai-config';
 
-// Initialize OpenAI client with configuration
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  // Add default configuration to handle API errors gracefully
-  maxRetries: 3,
-  timeout: 30000,
-});
-
-// Simplified API key validation that accepts both formats
+// Validate API key
 function validateApiKey(apiKey: string | undefined): void {
   if (!apiKey) {
-    throw new Error("OpenAI API key is not configured")
-  }
-  
-  // Only check if it starts with sk-, which covers both traditional and project keys
-  if (!apiKey.startsWith('sk-')) {
-    throw new Error("Invalid OpenAI API key format")
+    throw new Error("Google API key is not configured")
   }
 }
 
 export async function generateCoverLetter(resumeText: string, jobDescription: string): Promise<string> {
   try {
     // Validate API key before proceeding
-    validateApiKey(process.env.OPENAI_API_KEY)
+    validateApiKey(process.env.GOOGLE_API_KEY)
 
     // Trim and validate inputs
     const trimmedResumeText = resumeText.trim()
@@ -77,52 +64,53 @@ Important: The cover letter must specifically reference actual experiences and q
 Please provide only the cover letter text without any additional commentary.
 `
 
-    console.log("Sending request to OpenAI API with enhanced prompt...");
+    console.log("Sending request to Gemini API with enhanced prompt...");
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4-turbo-preview",
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000
-    });
+    try {
+      // Use withRetry to handle rate limiting
+      const result = await withRetry(async () => {
+        const response = await model.generateContent(prompt);
+        return response;
+      });
 
-    const text = completion.choices[0].message.content;
+      const text = result.response.text();
+      console.log("Received response from Gemini API");
 
-    console.log("Received response from OpenAI API");
+      if (!text || text.trim() === "") {
+        throw new Error("Failed to generate cover letter: Empty response from API")
+      }
 
-    if (!text || text.trim() === "") {
-      throw new Error("Failed to generate cover letter: Empty response from API")
+      return text;
+    } catch (apiError: any) {
+      // Handle specific Gemini API errors
+      if (apiError.message?.includes('safety')) {
+        throw new Error("Content flagged by safety filters. Please revise your input.");
+      }
+      if (apiError.message?.includes('invalid')) {
+        throw new Error("Invalid request. Please check your input format.");
+      }
+      // Re-throw the original error with more context
+      throw new Error(`Gemini API Error: ${apiError.message}`);
     }
-
-    return text
   } catch (error) {
     console.error("Error generating cover letter:", error)
 
-    // Provide more specific error messages
     if (error instanceof Error) {
       // API key validation errors
       if (error.message.includes("API key is not configured")) {
-        throw new Error("OpenAI API key is not configured. Please check your environment variables.")
+        throw new Error("Google API key is not configured. Please check your environment variables.")
       }
-      if (error.message.includes("Invalid OpenAI API key format")) {
-        throw new Error("Invalid OpenAI API key format. The key must start with 'sk-'.")
-      }
-      
-      // OpenAI API errors
-      if (error.message.includes("401")) {
-        throw new Error("API authentication failed. Please ensure your API key is valid and has the right permissions.")
-      } else if (error.message.includes("429")) {
-        throw new Error("API rate limit exceeded. Please try again later.")
-      } else if (error.message.includes("500")) {
-        throw new Error("API server error. Please try again later.")
+
+      // If we already have a formatted error message, use it
+      if (error.message.startsWith("Gemini API Error:") || 
+          error.message.startsWith("Failed to generate") ||
+          error.message.includes("Please check") ||
+          error.message.includes("Please revise")) {
+        throw error;
       }
     }
 
+    // Generic fallback error
     throw new Error("Failed to generate cover letter. Please try again.")
   }
 }
