@@ -2,19 +2,22 @@
 
 import OpenAI from 'openai';
 
+// Initialize OpenAI client with configuration
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  // Add default configuration to handle API errors gracefully
+  maxRetries: 3,
+  timeout: 30000,
 });
 
-// Add API key validation function
+// Simplified API key validation that accepts both formats
 function validateApiKey(apiKey: string | undefined): void {
   if (!apiKey) {
     throw new Error("OpenAI API key is not configured")
   }
   
-  // Check for both traditional and project API key formats
-  const isValidFormat = apiKey.startsWith('sk-') || apiKey.startsWith('sk-proj-')
-  if (!isValidFormat) {
+  // Only check if it starts with sk-, which covers both traditional and project keys
+  if (!apiKey.startsWith('sk-')) {
     throw new Error("Invalid OpenAI API key format")
   }
 }
@@ -107,12 +110,12 @@ Please provide only the cover letter text without any additional commentary.
         throw new Error("OpenAI API key is not configured. Please check your environment variables.")
       }
       if (error.message.includes("Invalid OpenAI API key format")) {
-        throw new Error("Invalid OpenAI API key format. The key should start with 'sk-' or 'sk-proj-'.")
+        throw new Error("Invalid OpenAI API key format. The key must start with 'sk-'.")
       }
       
       // OpenAI API errors
       if (error.message.includes("401")) {
-        throw new Error("API authentication failed. Please check if your API key is valid.")
+        throw new Error("API authentication failed. Please ensure your API key is valid and has the right permissions.")
       } else if (error.message.includes("429")) {
         throw new Error("API rate limit exceeded. Please try again later.")
       } else if (error.message.includes("500")) {
