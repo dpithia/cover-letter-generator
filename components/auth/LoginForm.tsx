@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
@@ -10,6 +11,8 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const message = searchParams.get('message')
   const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,9 +45,23 @@ export default function LoginForm() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+            Welcome back
           </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Sign in to continue generating cover letters
+          </p>
         </div>
+
+        {message && (
+          <div className="rounded-md bg-blue-50 p-4">
+            <div className="flex">
+              <div className="ml-3">
+                <p className="text-sm font-medium text-blue-800">{message}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -99,6 +116,18 @@ export default function LoginForm() {
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              New to Cover Letter Generator?{' '}
+              <Link
+                href="/auth/signup"
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Create an account
+              </Link>
+            </p>
           </div>
         </form>
       </div>

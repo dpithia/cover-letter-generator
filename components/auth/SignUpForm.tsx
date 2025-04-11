@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function SignUpForm() {
   const [email, setEmail] = useState('')
@@ -51,9 +52,12 @@ export default function SignUpForm() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
+          <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Welcome to Cover Letter Generator
+          </h1>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Create an account to start generating professional cover letters
+          </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
@@ -123,8 +127,20 @@ export default function SignUpForm() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              {loading ? 'Creating account...' : 'Sign up'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account?{' '}
+              <Link
+                href="/auth/login"
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Sign in here
+              </Link>
+            </p>
           </div>
         </form>
       </div>

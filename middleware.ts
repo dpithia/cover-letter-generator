@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   await supabase.auth.getSession()
   const { data: { session } } = await supabase.auth.getSession()
 
-  // Auth routes handling (login, signup)
+  // Auth routes handling (signup, login)
   if (request.nextUrl.pathname.startsWith('/auth')) {
     if (session) {
       // If user is signed in, redirect to home page
@@ -27,8 +27,8 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/profile')
   ) {
     if (!session) {
-      // If user is not signed in, redirect to login
-      return NextResponse.redirect(new URL('/auth/login', request.url))
+      // If user is not signed in, redirect to signup
+      return NextResponse.redirect(new URL('/auth/signup', request.url))
     }
   }
 
