@@ -6,6 +6,7 @@ import { Upload, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
 import mammoth from 'mammoth'
+import { pdfjs } from 'react-pdf'
 
 interface FileUploadProps {
   onTextExtracted: (text: string, fileName: string) => void
@@ -15,46 +16,48 @@ interface FileUploadProps {
 export default function FileUpload({ onTextExtracted, maxFileSize = 5 * 1024 * 1024 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [pdfjs, setPdfjs] = useState<any>(null)
   const [currentFile, setCurrentFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+  const [isPdfReady, setIsPdfReady] = useState(false)
 
   useEffect(() => {
-    const loadPdfJs = async () => {
+    if (typeof window !== 'undefined') {
       try {
-        const pdfjsLib = await import('pdfjs-dist');
-        // Use a specific version of the worker from CDN
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        setPdfjs(pdfjsLib);
+        pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
+        setIsPdfReady(true)
       } catch (error) {
-        console.error('Error loading PDF.js:', error);
+        console.error('Error initializing PDF.js worker:', error)
       }
-    };
-    loadPdfJs();
-  }, []);
+    }
+  }, [])
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsDragging(true)
   }
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     setIsDragging(false)
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
-    setIsDragging(false)
+    e.stopPropagation()
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFile(e.dataTransfer.files[0])
+    const file = e.dataTransfer.files[0]
+    if (file) {
+      await processFile(file)
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFile(e.target.files[0])
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      await processFile(file)
     }
   }
 
@@ -62,192 +65,203 @@ export default function FileUpload({ onTextExtracted, maxFileSize = 5 * 1024 * 1
     try {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
-      return result.value.trim();
+      
+      if (!result.value.trim()) {
+        throw new Error("No readable text could be extracted from the DOCX file.");
+      }
+      
+      return result.value;
     } catch (error) {
       console.error("Error extracting DOCX text:", error);
-      throw new Error("Failed to extract text from DOCX file. Please try copying and pasting the content manually.");
+      throw new Error("Failed to extract text from DOCX. Please ensure the file is not corrupted.");
     }
   }
 
   const extractPdfText = async (file: File): Promise<string> => {
-    if (!pdfjs) {
-      throw new Error("PDF.js is not initialized yet. Please try again.");
+    if (!isPdfReady) {
+      throw new Error("PDF processor is not ready. Please try again in a moment.");
     }
 
     try {
       const arrayBuffer = await file.arrayBuffer();
       const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
-      const pdf = await loadingTask.promise;
-      let fullText = '';
       
-      // Extract text from each page with improved formatting
+      loadingTask.onPassword = () => {
+        throw new Error("This PDF is password protected. Please provide an unprotected PDF.");
+      };
+
+      const pdf = await loadingTask.promise;
+      
+      if (pdf.numPages === 0) {
+        throw new Error("The PDF file appears to be empty");
+      }
+
+      let fullText = '';
+      let hasExtractableText = false;
+      
+      // Extract text from each page
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
         
-        // Group items by their y-coordinate to maintain layout
-        const textItems = textContent.items.reduce((lines: any, item: any) => {
-          const y = Math.round(item.transform[5]); // y-coordinate
-          if (!lines[y]) {
-            lines[y] = [];
-          }
-          lines[y].push(item.str);
-          return lines;
-        }, {});
+        const pageText = textContent.items
+          .filter((item: any) => item.str && typeof item.str === 'string')
+          .map((item: any) => item.str)
+          .join(' ')
+          .trim();
 
-        // Sort by y-coordinate (top to bottom) and join lines
-        const sortedKeys = Object.keys(textItems).sort((a, b) => Number(b) - Number(a));
-        const pageText = sortedKeys.map(y => textItems[y].join(' ')).join('\n');
-        
-        fullText += pageText + '\n\n';
+        if (pageText) {
+          hasExtractableText = true;
+          fullText += pageText + '\n\n';
+        }
       }
       
-      return fullText.trim();
+      const cleanedText = fullText
+        .trim()
+        .replace(/(\r\n|\n|\r){3,}/g, '\n\n')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (!hasExtractableText) {
+        throw new Error(
+          "This appears to be a scanned or image-based PDF with no extractable text. " +
+          "Please try using OCR software first, or manually type/paste the content."
+        );
+      }
+
+      return cleanedText;
     } catch (error) {
       console.error("Error extracting PDF text:", error);
-      throw new Error("Failed to extract text from PDF. Please try copying and pasting the content manually.");
+      
+      // Handle specific PDF.js errors
+      if (error instanceof Error) {
+        if (error.message.includes("password")) {
+          throw new Error("This PDF is password protected. Please provide an unprotected PDF.");
+        }
+        if (error.name === "MissingPDFException") {
+          throw new Error("This file appears to be corrupted or is not a valid PDF.");
+        }
+        if (error.name === "InvalidPDFException") {
+          throw new Error("This file is not a valid PDF or is severely corrupted.");
+        }
+        if (error.message.includes("scanned") || error.message.includes("image-based")) {
+          throw error; // Re-throw our custom scanned PDF error
+        }
+      }
+      
+      throw new Error("Failed to extract text from PDF. The file might be corrupted or in an unsupported format.");
     }
   }
 
-  const readFileAsText = async (file: File): Promise<string> => {
-    // Check file size
+  const validateFile = (file: File) => {
+    const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']
+    
+    // Handle PDFs that come as octet-stream
+    const isPdf = file.type === 'application/pdf' || 
+      (file.type === 'application/octet-stream' && file.name.toLowerCase().endsWith('.pdf'))
+    
+    if (!isPdf && !validTypes.includes(file.type)) {
+      throw new Error('Invalid file type. Please upload a PDF, DOCX, or TXT file.')
+    }
     if (file.size > maxFileSize) {
-      throw new Error(`File size exceeds the maximum limit of ${Math.round(maxFileSize / 1024 / 1024)}MB`);
-    }
-
-    console.log(`Processing file: ${file.name} (${Math.round(file.size / 1024)}KB)`);
-
-    if (file.type === "application/pdf") {
-      return await extractPdfText(file);
-    }
-
-    if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-      return await extractDocxText(file);
-    }
-
-    // For TXT files, read directly
-    try {
-      const text = await file.text();
-      if (!text.trim()) {
-        throw new Error("The file appears to be empty");
-      }
-      return text;
-    } catch (error) {
-      console.error("Error reading file:", error);
-      throw new Error("Failed to read file content. Please ensure the file is not corrupted.");
+      throw new Error(`File size exceeds ${maxFileSize / (1024 * 1024)}MB limit.`)
     }
   }
 
-  const handleFile = async (file: File) => {
-    const validTypes = [
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "text/plain",
-    ]
-
-    if (!validTypes.includes(file.type)) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload a PDF, DOCX, or TXT file",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setCurrentFile(file)
-    setIsLoading(true)
+  const processFile = async (file: File) => {
     try {
-      const text = await readFileAsText(file)
-      console.log(`Successfully extracted ${text.length} characters from ${file.name}`);
-      
-      if (!text.trim()) {
-        throw new Error("No text could be extracted from the file");
+      validateFile(file)
+      setCurrentFile(file)
+      setIsLoading(true)
+
+      let extractedText = ''
+      if (file.type === 'application/pdf') {
+        extractedText = await extractPdfText(file)
+      } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        extractedText = await extractDocxText(file)
+      } else if (file.type === 'text/plain') {
+        extractedText = await file.text()
       }
 
-      onTextExtracted(text, file.name)
-      
+      if (!extractedText.trim()) {
+        throw new Error('No text could be extracted from the file.')
+      }
+
+      onTextExtracted(extractedText, file.name)
       toast({
-        title: "File processed successfully",
-        description: `Text has been extracted from your ${file.type === "application/pdf" ? "PDF" : 
-          file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ? "DOCX" : "TXT"} file`,
+        title: "Success!",
+        description: "Text has been successfully extracted from your file.",
       })
     } catch (error) {
-      console.error("Error processing file:", error);
+      console.error('Error processing file:', error)
+      setCurrentFile(null)
       toast({
-        title: "Error extracting text",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process file",
         variant: "destructive",
       })
-      setCurrentFile(null)
     } finally {
       setIsLoading(false)
+      setIsDragging(false)
     }
   }
 
-  const handleRemoveFile = (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent triggering the parent div's onClick
+  const handleRemoveFile = () => {
     setCurrentFile(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-    onTextExtracted('', '') // Clear the extracted text
-    toast({
-      title: "File removed",
-      description: "You can now upload a different file",
-    })
   }
 
   return (
-    <div className="w-full">
-      <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-          isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/20"
-        }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={handleFileChange} 
-          accept=".pdf,.docx,.txt" 
-          className="hidden" 
-        />
-        <div className="flex flex-col items-center justify-center space-y-2">
-          {isLoading ? (
-            <>
-              <Loader2 className="h-8 w-8 text-primary animate-spin" />
-              <div className="text-sm font-medium">Processing file...</div>
-            </>
-          ) : currentFile ? (
-            <div className="flex flex-col items-center space-y-2">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-primary truncate max-w-[200px]" title={currentFile.name}>
-                  {currentFile.name}
-                </span>
-                <button
-                  onClick={handleRemoveFile}
-                  className="p-1 hover:bg-destructive/10 rounded-full transition-colors"
-                  title="Remove file"
-                >
-                  <X className="h-5 w-5 text-destructive" />
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">Click to upload a different file</p>
-            </div>
-          ) : (
-            <>
-              <Upload className="h-8 w-8 text-muted-foreground" />
-              <div className="text-sm font-medium">
-                <span className="text-primary">Click to upload</span> or drag and drop
-              </div>
-              <p className="text-xs text-muted-foreground">PDF, DOCX, or TXT (max 5MB)</p>
-            </>
-          )}
+    <div
+      className={`relative border-2 border-dashed rounded-lg p-6 ${
+        isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        accept=".pdf,.docx,.txt"
+        className="hidden"
+      />
+      
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+          <p className="mt-2 text-sm text-gray-500">Processing your file...</p>
         </div>
-      </div>
+      ) : currentFile ? (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Upload className="h-6 w-6 text-blue-500" />
+            <span className="ml-2 text-sm text-gray-600">{currentFile.name}</span>
+          </div>
+          <button
+            onClick={handleRemoveFile}
+            className="p-1 hover:bg-gray-100 rounded-full"
+          >
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="w-full h-full flex flex-col items-center justify-center cursor-pointer"
+        >
+          <Upload className="h-8 w-8 text-gray-400" />
+          <p className="mt-2 text-sm text-gray-500">
+            Drag and drop your file here, or click to select
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            Supports PDF, DOCX, and TXT files up to {maxFileSize / (1024 * 1024)}MB
+          </p>
+        </button>
+      )}
     </div>
   )
 }
