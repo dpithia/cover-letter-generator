@@ -4,23 +4,41 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Check, ChevronRight, Github, Loader2 } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SignUpForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [socialLoading, setSocialLoading] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
     setLoading(true)
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      })
       setLoading(false)
       return
     }
@@ -30,120 +48,231 @@ export default function SignUpForm() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
         },
       })
 
       if (signUpError) {
-        setError(signUpError.message)
+        toast({
+          title: "Error",
+          description: signUpError.message,
+          variant: "destructive",
+        })
         return
       }
 
       // Show success message and redirect to login
       router.push('/auth/login?message=Check your email to confirm your account')
     } catch (err) {
-      setError('An unexpected error occurred')
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
   }
 
+  const handleGoogleSignIn = async () => {
+    try {
+      setSocialLoading('google')
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      })
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        })
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to connect with Google",
+        variant: "destructive",
+      })
+    } finally {
+      setSocialLoading(null)
+    }
+  }
+
+  const handleGithubSignIn = async () => {
+    try {
+      setSocialLoading('github')
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/`,
+        },
+      })
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        })
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to connect with GitHub",
+        variant: "destructive",
+      })
+    } finally {
+      setSocialLoading(null)
+    }
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Welcome to Cover Letter Generator
-          </h1>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Create an account to start generating professional cover letters
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md mx-auto shadow-lg border-border/40">
+        <CardHeader className="space-y-4">
+          <div className="flex justify-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background">
+              <Check className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+          <div className="space-y-2 text-center">
+            <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+            <CardDescription>
+              Enter your information to get started with Cover Letter Generator
+            </CardDescription>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
+              <Input 
                 id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
+                type="email" 
+                placeholder="hello@example.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                required 
               />
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <span className="text-xs text-muted-foreground">
+                  Must be at least 8 characters
+                </span>
+              </div>
+              <Input 
                 id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
+                type="password" 
+                placeholder="••••••••" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
+                required 
+                minLength={8}
               />
             </div>
-            <div>
-              <label htmlFor="confirm-password" className="sr-only">
-                Confirm Password
-              </label>
-              <input
+
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input 
                 id="confirm-password"
-                name="confirm-password"
-                type="password"
-                autoComplete="new-password"
-                required
+                type="password" 
+                placeholder="••••••••" 
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
+                required 
+                minLength={8}
               />
             </div>
-          </div>
-
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <button
-              type="submit"
+            
+            <Button 
+              type="submit" 
+              className="w-full" 
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                <>Create account</>
+              )}
+            </Button>
+          </form>
+          
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-background px-2 text-xs text-muted-foreground">
+                OR CONTINUE WITH
+              </span>
+            </div>
           </div>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link
-                href="/auth/login"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                Sign in here
-              </Link>
-            </p>
+          
+          <div className="grid gap-3">
+            <Button 
+              variant="outline" 
+              type="button" 
+              className="w-full"
+              onClick={handleGithubSignIn}
+              disabled={!!socialLoading}
+            >
+              {socialLoading === 'github' ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Github className="mr-2 h-4 w-4" />
+              )}
+              {socialLoading === 'github' ? 'Connecting...' : 'Continue with GitHub'}
+            </Button>
+            <Button 
+              variant="outline" 
+              type="button" 
+              className="w-full"
+              onClick={handleGoogleSignIn}
+              disabled={!!socialLoading}
+            >
+              {socialLoading === 'google' ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                  <path
+                    d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
+                    fill="currentColor"
+                  />
+                </svg>
+              )}
+              {socialLoading === 'google' ? 'Connecting...' : 'Continue with Google'}
+            </Button>
           </div>
-        </form>
-      </div>
+        </CardContent>
+        
+        <CardFooter className="flex flex-col items-center justify-center space-y-2 text-center">
+          <p className="text-xs text-muted-foreground">
+            By creating an account, you agree to our{" "}
+            <Link href="#" className="underline underline-offset-2 hover:text-primary">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="#" className="underline underline-offset-2 hover:text-primary">
+              Privacy Policy
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   )
 } 
