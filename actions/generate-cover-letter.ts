@@ -1,7 +1,10 @@
 "use server"
 
-import { generateText } from "ai"
-import { anthropic } from "@ai-sdk/anthropic"
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function generateCoverLetter(resumeText: string, jobDescription: string): Promise<string> {
   try {
@@ -35,15 +38,23 @@ Instructions:
 Please provide only the cover letter text without any additional commentary.
 `
 
-    console.log("Sending request to Claude API...")
+    console.log("Sending request to OpenAI API...")
 
-    const { text } = await generateText({
-      model: anthropic("claude-3-haiku-20240307"),
-      prompt,
-      maxTokens: 1500,
-    })
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4-turbo-preview",
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000
+    });
 
-    console.log("Received response from Claude API")
+    const text = completion.choices[0].message.content;
+
+    console.log("Received response from OpenAI API");
 
     if (!text || text.trim() === "") {
       throw new Error("Failed to generate cover letter: Empty response from API")
