@@ -6,8 +6,24 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Add API key validation function
+function validateApiKey(apiKey: string | undefined): void {
+  if (!apiKey) {
+    throw new Error("OpenAI API key is not configured")
+  }
+  
+  // Check for both traditional and project API key formats
+  const isValidFormat = apiKey.startsWith('sk-') || apiKey.startsWith('sk-proj-')
+  if (!isValidFormat) {
+    throw new Error("Invalid OpenAI API key format")
+  }
+}
+
 export async function generateCoverLetter(resumeText: string, jobDescription: string): Promise<string> {
   try {
+    // Validate API key before proceeding
+    validateApiKey(process.env.OPENAI_API_KEY)
+
     // Trim and validate inputs
     const trimmedResumeText = resumeText.trim()
     const trimmedJobDescription = jobDescription.trim()
@@ -86,8 +102,17 @@ Please provide only the cover letter text without any additional commentary.
 
     // Provide more specific error messages
     if (error instanceof Error) {
+      // API key validation errors
+      if (error.message.includes("API key is not configured")) {
+        throw new Error("OpenAI API key is not configured. Please check your environment variables.")
+      }
+      if (error.message.includes("Invalid OpenAI API key format")) {
+        throw new Error("Invalid OpenAI API key format. The key should start with 'sk-' or 'sk-proj-'.")
+      }
+      
+      // OpenAI API errors
       if (error.message.includes("401")) {
-        throw new Error("API authentication failed. Please check your API key.")
+        throw new Error("API authentication failed. Please check if your API key is valid.")
       } else if (error.message.includes("429")) {
         throw new Error("API rate limit exceeded. Please try again later.")
       } else if (error.message.includes("500")) {
