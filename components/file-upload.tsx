@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Upload, X } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
 import mammoth from 'mammoth'
 import { pdfjs } from 'react-pdf'
