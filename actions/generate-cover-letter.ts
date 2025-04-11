@@ -16,29 +16,49 @@ export async function generateCoverLetter(resumeText: string, jobDescription: st
       throw new Error("Resume text and job description are required")
     }
 
-    const prompt = `
-You are a professional cover letter writer. Your task is to create a personalized cover letter based on the provided resume and job description.
+    console.log("Resume Text received:", trimmedResumeText); // Debug log
+    console.log("Job Description received:", trimmedJobDescription); // Debug log
 
-Resume:
+    const prompt = `
+You are a professional cover letter writer. Your task is to create a highly personalized cover letter that specifically matches the candidate's resume with the job requirements.
+
+Resume Content (Use this information to personalize the letter):
 ${trimmedResumeText}
 
 Job Description:
 ${trimmedJobDescription}
 
 Instructions:
-1. Analyze the resume to identify the candidate's skills, experience, and qualifications.
-2. Analyze the job description to understand the key requirements and responsibilities.
-3. Create a personalized cover letter that highlights how the candidate's qualifications match the job requirements.
-4. Use a professional tone and format the letter properly with appropriate sections.
-5. Keep the cover letter concise (around 300-400 words).
-6. Do not include the current date.
-7. Use "Hiring Manager" as the salutation if no specific name is provided.
-8. Include a proper closing with "Sincerely," followed by a placeholder for the candidate's name.
+1. Carefully analyze the resume to extract:
+   - Specific skills and technologies
+   - Work experience and achievements
+   - Educational background
+   - Any certifications or relevant qualifications
+
+2. Analyze the job description to identify:
+   - Key requirements and responsibilities
+   - Required skills and qualifications
+   - Company values and culture indicators
+
+3. Create a personalized cover letter that:
+   - Directly references specific experiences from the resume
+   - Shows clear connections between past achievements and job requirements
+   - Uses concrete examples from the resume to demonstrate qualifications
+   - Maintains a professional yet engaging tone
+   - Demonstrates genuine interest in the role
+
+4. Format Requirements:
+   - Keep the letter concise (300-400 words)
+   - Use "Hiring Manager" as the salutation
+   - Include a proper closing with "Sincerely," followed by a placeholder for the candidate's name
+   - Do not include the current date
+
+Important: The cover letter must specifically reference actual experiences and qualifications from the provided resume. Do not generate generic content.
 
 Please provide only the cover letter text without any additional commentary.
 `
 
-    console.log("Sending request to OpenAI API...")
+    console.log("Sending request to OpenAI API with enhanced prompt...");
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4-turbo-preview",

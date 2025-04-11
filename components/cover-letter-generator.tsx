@@ -16,9 +16,19 @@ export default function CoverLetterGenerator() {
   const [coverLetter, setCoverLetter] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [uploadedFileName, setUploadedFileName] = useState("")
+  const [activeTab, setActiveTab] = useState("upload")
   const { toast } = useToast()
 
   const handleFileTextExtracted = (text: string, fileName: string) => {
+    console.log('Extracted Resume Text:', text);
+    if (!text || text === "Please paste your resume content in the text area for better results.") {
+      toast({
+        title: "Warning",
+        description: "The resume text couldn't be extracted automatically. Please paste it manually.",
+        variant: "destructive",
+      })
+      return;
+    }
     setResumeText(text)
     setUploadedFileName(fileName)
     toast({
@@ -28,7 +38,7 @@ export default function CoverLetterGenerator() {
   }
 
   const handleGenerateCoverLetter = async () => {
-    if (!resumeText.trim()) {
+    if (!resumeText.trim() || resumeText === "Please paste your resume content in the text area for better results.") {
       toast({
         title: "Resume required",
         description: "Please upload your resume or paste your resume text",
@@ -36,6 +46,8 @@ export default function CoverLetterGenerator() {
       })
       return
     }
+
+    console.log('Resume Text being sent:', resumeText);
 
     if (!jobDescription.trim()) {
       toast({
@@ -82,19 +94,13 @@ export default function CoverLetterGenerator() {
         <Card>
           <CardContent className="pt-6">
             <h2 className="text-xl font-semibold mb-4">Resume</h2>
-            <Tabs defaultValue="paste">
+            <Tabs defaultValue="upload" onValueChange={setActiveTab}>
               <TabsList className="mb-4">
                 <TabsTrigger value="upload">Upload Resume</TabsTrigger>
                 <TabsTrigger value="paste">Paste Resume</TabsTrigger>
               </TabsList>
               <TabsContent value="upload">
                 <FileUpload onTextExtracted={handleFileTextExtracted} />
-                {uploadedFileName && (
-                  <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
-                    <FileText size={16} />
-                    <span>{uploadedFileName}</span>
-                  </div>
-                )}
               </TabsContent>
               <TabsContent value="paste">
                 <Textarea
@@ -103,6 +109,12 @@ export default function CoverLetterGenerator() {
                   value={resumeText}
                   onChange={(e) => setResumeText(e.target.value)}
                 />
+                {activeTab === "paste" && uploadedFileName && (
+                  <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
+                    <FileText size={16} />
+                    <span>Content from: {uploadedFileName}</span>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
