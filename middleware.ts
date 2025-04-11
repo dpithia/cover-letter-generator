@@ -22,10 +22,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protected routes handling
-  if (
-    request.nextUrl.pathname === '/' ||
-    request.nextUrl.pathname.startsWith('/profile')
-  ) {
+  if (request.nextUrl.pathname.startsWith('/profile')) {
     if (!session) {
       // If user is not signed in, redirect to signup
       return NextResponse.redirect(new URL('/auth/signup', request.url))

@@ -1,15 +1,15 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import CoverLetterGenerator from '@/components/cover-letter-generator'
 import NavBar from '@/components/NavBar'
+import LandingPage from '@/components/LandingPage'
 
 export default async function HomePage() {
   const supabase = createServerComponentClient({ cookies })
   const { data: { session } } = await supabase.auth.getSession()
 
   if (!session) {
-    redirect('/auth/signup')
+    return <LandingPage />
   }
 
   return (
