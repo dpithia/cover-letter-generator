@@ -8,7 +8,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="container mx-auto flex h-20 items-center justify-between px-4">
-        <div className="text-2xl font-bold">Cover Letter Generator</div>
+        <div className="text-2xl font-bold">NeuralLetter</div>
         <nav className="flex items-center gap-4">
           <Link href="/auth/login">
             <Button variant="ghost">Login</Button>
@@ -22,7 +22,7 @@ export default function LandingPage() {
       <Hero />
 
       <section id="features" className="container mx-auto px-4 py-24">
-        <h2 className="text-3xl font-bold text-center mb-12">Why Choose Us?</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">Why Choose NeuralLetter?</h2>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="flex flex-col items-center text-center p-6 rounded-lg border bg-card">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">

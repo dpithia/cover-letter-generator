@@ -5,8 +5,8 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Cover Letter Generator',
-  description: 'Generate professional cover letters with AI',
+  title: 'NeuralLetter',
+  description: 'AI-powered personalized cover letters',
 }
 
 export default function RootLayout({
