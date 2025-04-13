@@ -13,6 +13,7 @@ import { AIInputWithSuggestions } from "@/components/ui/ai-input-with-suggestion
 import { BorderTrail } from "@/components/ui/border-trail"
 import { cn } from "@/lib/utils"
 import { SaveLetterDialog } from "@/components/ui/save-letter-dialog"
+import { saveCoverLetter } from "@/app/actions/save-cover-letter"
 
 export default function NeuralLetterGenerator() {
   const [resumeText, setResumeText] = useState("")
@@ -107,13 +108,27 @@ export default function NeuralLetterGenerator() {
     }
   }
 
-  const handleSaveLetter = (name: string) => {
-    // For now, we'll just show a success message
-    // Later we can implement actual saving functionality
-    toast({
-      title: "Cover Letter Saved",
-      description: `Saved as "${name}"`,
-    })
+  const handleSaveLetter = async (name: string) => {
+    try {
+      await saveCoverLetter({
+        name,
+        content: coverLetter,
+        resumeText,
+        jobDescription,
+      })
+      
+      toast({
+        title: "Cover Letter Saved",
+        description: `Successfully saved "${name}" to your account`,
+      })
+    } catch (error) {
+      console.error('Error saving cover letter:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save cover letter",
+        variant: "destructive",
+      })
+    }
   }
 
   const jobDescriptionActions = [

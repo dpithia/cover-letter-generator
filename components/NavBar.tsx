@@ -32,6 +32,13 @@ export default function NavBar() {
         <Settings className="w-4 h-4" />
         Settings
       </Link>
+      <Link
+        href="/saved"
+        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-200 hover:text-white hover:bg-gray-800/50 transition-colors"
+      >
+        <FileText className="w-4 h-4" />
+        Saved Letters
+      </Link>
       <div className="md:ml-2">
         <SignOutButton />
       </div>
