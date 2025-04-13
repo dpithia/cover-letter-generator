@@ -1,0 +1,41 @@
+[
+  {
+    "resumeText": "Second-year Computer Science student at University of Waterloo. Developed 'WanderMap' using Next.js and Firebase with 5,000+ monthly users. Internship at Shopify with React, GraphQL, TypeScript. Hack the North winner. Familiar with Git, Jest, Tailwind, Firebase, Docker.",
+    "jobDescription": "Meta seeks Software Engineering Interns to work on large-scale distributed systems, front-end frameworks, and AI-powered products. Candidates should have experience with C++, Java, or Python, and a passion for solving complex problems collaboratively.",
+    "coverLetter": "Dear Hiring Manager,\n\nI am a second-year Computer Science student at the University of Waterloo, excited to apply for the Software Engineering Internship at Meta. With a solid foundation in full-stack development and hands-on experience from my internship at Shopify, I am eager to contribute to Meta's mission of building impactful and scalable technology.\n\nMy project, WanderMap, is a full-stack application developed using Next.js and Firebase, which has garnered over 5,000 monthly users. At Shopify, I contributed to internal React components and integrated new GraphQL endpoints, improving form performance by 35%.\n\nI am deeply interested in distributed systems and have explored backend scalability using Docker and serverless architectures in personal projects. Additionally, my participation in Hack the North 2024, where I led a cloud-native app build using Google Cloud Platform and Firestore, showcases my initiative and technical skills.\n\nMeta's scale and emphasis on innovation are aspects I am eager to engage with. I look forward to the opportunity to learn from Meta's engineering teams and contribute to projects that impact billions of users.\n\nSincerely,\n[Your Name]",
+    "company": "Meta",
+    "role": "Software Engineering Intern",
+    "level": "Internship",
+    "tone": "technical",
+    "focusAreas": [
+      "technical",
+      "growth"
+    ]
+  },
+  {
+    "resumeText": "CS and Statistics major at UC Berkeley. NLP research assistant working on BERT fine-tuning. Created ML-powered Chrome extension with OpenAI. Published in Berkeley AI Journal. Skilled in TensorFlow, PyTorch, Jupyter, Pandas. Strong background in machine learning, linear algebra, and probability.",
+    "jobDescription": "Google Research seeks interns passionate about advancing the field of AI. Interns will collaborate on state-of-the-art machine learning projects, contributing to model development, evaluation, and optimization. Python and ML frameworks required.",
+    "coverLetter": "Dear Hiring Manager,\n\nI am excited to apply for the Machine Learning Research Intern position at Google. As a Computer Science and Statistics major at UC Berkeley with hands-on research experience in NLP and deep learning, I am eager to contribute to Google's innovative AI projects.\n\nIn my role as a research assistant, I fine-tuned BERT models for sentiment classification, achieving an 8% improvement in F1 scores across multi-domain datasets. I also developed a Chrome extension that utilizes OpenAI's API to summarize YouTube transcripts, aiding over 3,000 users in digesting long-form content.\n\nMy technical toolkit includes TensorFlow, PyTorch, and scikit-learn, and I have experience in both experimental research and deployment. My academic background in machine learning and statistics complements my practical skills.\n\nI am inspired by Google's commitment to open research and scalable AI solutions. I would welcome the opportunity to contribute to your team and further develop my skills in a collaborative environment.\n\nSincerely,\n[Your Name]",
+    "company": "Google",
+    "role": "Machine Learning Research Intern",
+    "level": "Internship",
+    "tone": "technical",
+    "focusAreas": [
+      "technical",
+      "creativity"
+    ]
+  },
+  {
+    "resumeText": "Third-year Computer Science student at Georgia Tech. Internship at IBM DevOps team. Built CI/CD pipelines using GitHub Actions and Terraform. AWS Certified Cloud Practitioner. Created serverless apps with AWS Lambda and DynamoDB. Proficient in Python and Bash scripting.",
+    "jobDescription": "AWS seeks Cloud Support Interns to build and support highly available and scalable solutions. Interns will work with Terraform, CloudFormation, CI/CD, and serverless tools. Strong problem-solving skills and cloud knowledge are essential.",
+    "coverLetter": "Dear Hiring Manager,\n\nI am writing to express my interest in the Cloud Support Intern role at Amazon Web Services. As a Computer Science student at Georgia Tech with DevOps experience and AWS certification, I am eager to contribute to AWS's mission of delivering reliable cloud solutions.\n\nDuring my internship at IBM, I developed reusable Terraform modules for Kubernetes deployments and automated build processes with GitHub Actions, reducing deployment errors by 40%. In personal projects, I have utilized AWS Lambda and DynamoDB to create cost-effective serverless applications, including a habit-tracking app.\n\nMy scripting abilities in Python and Bash have been instrumental in streamlining deployments and troubleshooting. I am passionate about cloud infrastructure and committed to continuous learning in this rapidly evolving field.\n\nI look forward to the opportunity to contribute to AWS's innovative projects and further develop my skills within your dynamic team.\n\nSincerely,\n[Your Name]",
+    "company": "Amazon",
+    "role": "Cloud Support Intern",
+    "level": "Internship",
+    "tone": "technical",
+    "focusAreas": [
+      "technical",
+      "growth"
+    ]
+  }
+]

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FileText, Loader2, CheckCheck, Copy, Wand2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FileText, Loader2, CheckCheck, Copy, Wand2, Settings } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { generateCoverLetter } from "@/actions/generate-cover-letter"
 import FileUpload from "@/components/file-upload"
@@ -66,9 +67,7 @@ export default function NeuralLetterGenerator() {
 
     setIsLoading(true)
     try {
-      console.log("Generating letter with job description length:", trimmedJobDescription.length);
       const result = await generateCoverLetter(resumeText, trimmedJobDescription)
-      console.log("Letter generated successfully")
       setCoverLetter(result)
       toast({
         title: "Success!",
@@ -163,13 +162,6 @@ export default function NeuralLetterGenerator() {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Cover Letter Generator</h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Create a professional cover letter in minutes. Upload your resume and provide a job description to get started.
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="border-border bg-background shadow-sm">
           <CardContent className="p-6">
@@ -208,20 +200,14 @@ export default function NeuralLetterGenerator() {
             <div className="mt-8 space-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Job Description</h3>
-                <div className="rounded-md">
+                <div className="space-y-4">
                   <AIInputWithSuggestions
                     placeholder="Paste the job description here..."
-                    minHeight={100}
-                    maxHeight={300}
+                    minHeight={200}
+                    maxHeight={400}
                     actions={jobDescriptionActions}
                     onSubmit={handleJobDescriptionSubmit}
                   />
-                  {jobDescription && (
-                    <div className="mt-4 p-3 bg-muted rounded-md">
-                      <p className="font-medium text-sm mb-1">Current Job Description:</p>
-                      <p className="text-sm">{jobDescription}</p>
-                    </div>
-                  )}
                 </div>
               </div>
 
