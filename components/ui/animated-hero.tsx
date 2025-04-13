@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { MoveRight, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react"
+import { motion } from "framer-motion"
+import { MoveRight, FileText } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 function Hero() {
   const [titleNumber, setTitleNumber] = useState(0);
@@ -72,11 +72,6 @@ function Hero() {
             <Link href="/auth/signup">
               <Button size="lg" className="gap-4">
                 Get Started <MoveRight className="w-4 h-4" />
-              </Button>
-            </Link>
-            <Link href="#features">
-              <Button size="lg" className="gap-4" variant="outline">
-                Learn More <MoveRight className="w-4 h-4" />
               </Button>
             </Link>
           </div>
