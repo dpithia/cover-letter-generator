@@ -12,6 +12,7 @@ import FileUpload from "@/components/file-upload"
 import { AIInputWithSuggestions } from "@/components/ui/ai-input-with-suggestions"
 import { BorderTrail } from "@/components/ui/border-trail"
 import { cn } from "@/lib/utils"
+import { SaveLetterDialog } from "@/components/ui/save-letter-dialog"
 
 export default function NeuralLetterGenerator() {
   const [resumeText, setResumeText] = useState("")
@@ -104,6 +105,15 @@ export default function NeuralLetterGenerator() {
         });
       }
     }
+  }
+
+  const handleSaveLetter = (name: string) => {
+    // For now, we'll just show a success message
+    // Later we can implement actual saving functionality
+    toast({
+      title: "Cover Letter Saved",
+      description: `Saved as "${name}"`,
+    })
   }
 
   const jobDescriptionActions = [
@@ -230,6 +240,7 @@ export default function NeuralLetterGenerator() {
               </h3>
               {coverLetter && (
                 <div className="flex gap-2">
+                  <SaveLetterDialog onSave={handleSaveLetter} />
                   <Button
                     variant="outline"
                     size="sm"

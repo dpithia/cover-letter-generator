@@ -65,6 +65,42 @@ export default function FileUpload({ onTextExtracted, maxFileSize = 5 * 1024 * 1
     }
   }
 
+  const extractPdfText = async (file: File): Promise<string> => {
+    try {
+      // Simple health check
+      const healthCheck = await fetch('/api/extract');
+      if (!healthCheck.ok) {
+        throw new Error('PDF extraction service is not available');
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/extract', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error);
+      } else if (!result.text) {
+        throw new Error('No text could be extracted from the PDF');
+      }
+
+      return result.text;
+    } catch (error) {
+      console.error('Error extracting PDF text:', error);
+      throw new Error(error instanceof Error ? error.message : 'Failed to extract text from PDF');
+    }
+  }
+
   const validateFile = (file: File) => {
     const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']
     
@@ -89,7 +125,7 @@ export default function FileUpload({ onTextExtracted, maxFileSize = 5 * 1024 * 1
       let extractedText = ''
       if (file.type === 'application/pdf' || 
           (file.type === 'application/octet-stream' && file.name.toLowerCase().endsWith('.pdf'))) {
-        extractedText = await extractTextFromPdf(file)
+        extractedText = await extractPdfText(file)
       } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
         extractedText = await extractDocxText(file)
       } else if (file.type === 'text/plain') {

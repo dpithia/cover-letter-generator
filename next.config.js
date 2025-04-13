@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ["pdf-parse"],
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Don't attempt to load these modules on the server
