@@ -1,0 +1,27 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+  # Use Next.js runtime
+  edge_functions = "edge-functions"
+
+[build.environment]
+  NODE_VERSION = "20.14.0"
+  NPM_FLAGS = "--no-fund --no-audit"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["pdf-parse", "pdfjs-dist", "tesseract.js"]
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Caching settings (optional)
+[context.production]
+  [context.production.environment]
+    NEXT_TELEMETRY_DISABLED = "1"
+
+# You can add redirects here if needed
+# [[redirects]]
+#   from = "/api/*"
+#   to = "/.netlify/functions/:splat"
+#   status = 200
