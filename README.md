@@ -57,7 +57,7 @@ NeuralLetter is a sophisticated AI-powered cover letter generator that leverages
 3. **Generate**: Click the generate button and watch AI create your cover letter
 4. **Copy & Use**: Copy the generated letter to your clipboard
 
-**Live Demo**: [Visit NeuralLetter](https://your-domain.com)
+**Live Demo**: [Visit NeuralLetter](https://neuralletter.netlify.app/)
 
 ### Screenshots
 
