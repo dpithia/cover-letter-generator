@@ -42,7 +42,6 @@
     "@ungap/with-resolvers": "^0.1.0",
     "class-variance-authority": "^0.7.1",
     "framer-motion": "^12.6.3",
-    "embla-carousel-react": "^8.1.2",
     "lucide-react": "^0.487.0",
     "mammoth": "^1.9.0",
     "nanoid": "^5.1.5",
