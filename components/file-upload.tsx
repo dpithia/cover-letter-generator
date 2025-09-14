@@ -6,7 +6,6 @@ import { Upload, X } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
 import mammoth from 'mammoth'
-import { extractTextFromPdf } from '@/utils/pdf-utils'
 
 interface FileUploadProps {
   onTextExtracted: (text: string, fileName: string) => void
