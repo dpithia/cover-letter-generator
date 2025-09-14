@@ -1,6 +1,4 @@
-"use server"
-
-import { model, withRetry } from '@/utils/ai-config';
+import { model, withRetry } from './ai-config';
 
 // Define customization options interface
 interface CoverLetterOptions {
@@ -9,20 +7,16 @@ interface CoverLetterOptions {
   length?: 'concise' | 'standard' | 'detailed';
 }
 
-// Validate API key
-function validateApiKey(apiKey: string | undefined): void {
-  if (!apiKey) {
-    throw new Error("Google API key is not configured")
-  }
-}
-
 export async function generateCoverLetter(
-  resumeText: string, 
+  resumeText: string,
   jobDescription: string,
   options: CoverLetterOptions = {}
 ): Promise<string> {
   try {
-    validateApiKey(process.env.GOOGLE_API_KEY)
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      throw new Error("Google API key is not configured")
+    }
 
     const trimmedResumeText = resumeText.trim()
     const trimmedJobDescription = jobDescription.trim()
@@ -161,7 +155,7 @@ Use precise technical terminology and tailor everything to the role. Do not incl
         throw new Error("Google API key is not configured. Please check your environment variables.");
       }
 
-      if (error.message.startsWith("Gemini API Error:") || 
+      if (error.message.startsWith("Gemini API Error:") ||
           error.message.startsWith("Failed to generate") ||
           error.message.includes("Please check") ||
           error.message.includes("Please revise")) {
@@ -172,4 +166,3 @@ Use precise technical terminology and tailor everything to the role. Do not incl
     throw new Error("Failed to generate cover letter. Please try again.");
   }
 }
-
