@@ -4,7 +4,7 @@
 
 ![NeuralLetter Logo](https://img.shields.io/badge/NeuralLetter-AI%20Powered%20Cover%20Letter%20Generator-blue?style=for-the-badge&logo=google&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Made with Next.js](https://img.shields.io/badge/ Made%20with-Next.js-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Made with Next.js](https://img.shields.io/badge/Made%20with-Next.js-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 **Transform your resume into compelling cover letters with advanced AI.**
@@ -62,7 +62,7 @@ NeuralLetter is a sophisticated AI-powered cover letter generator that leverages
 ### Screenshots
 
 <div align="center">
-  <img src="https://via.placeholder.com/800x400/1a1a1a/ffffff?text=NeuralLetter+Interface" alt="NeuralLetter Interface" width="800">
+  <img src="assets/screenshots/preview.png" alt="NeuralLetter Interface" width="800">
   <br>
   <em>Modern, intuitive interface designed for productivity</em>
 </div>
